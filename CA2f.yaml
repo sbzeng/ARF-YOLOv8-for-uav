@@ -1,0 +1,46 @@
+# Ultralytics YOLO 🚀, GPL-3.0 license
+# YOLOv8 object detection model with P3-P5 outputs. For Usage examples see https://docs.ultralytics.com/tasks/detect
+
+# Parameters
+nc: 10  # number of classes
+depth_multiple: 0.67  # scales module repeats
+width_multiple: 0.75 # scales convolution channelsa
+ 
+# YOLOv8.0n backboneq
+backbone:
+  # [from, repeats, module, args]
+  - [-1, 1, Conv, [64, 3, 2]]  # 0-P1/2
+
+  - [-1, 3, C2f, [64, True]]
+
+  - [-1, 1, Conv, [128, 3, 2]]  
+  - [-1, 6, C2f, [128, True]]  #3
+     #3
+ 
+  - [-1, 6, C2f, [128, True]]    #4
+  #5
+ 
+  - [-1, 3, C2f, [96, True]]   #5
+  - [-1, 1, Conv, [192, 3, 2]] 
+  - [-1, 1, SPPF, [192, 5]]  # 7
+  - [-1, 1, CA2f, [192]] 
+# YOLOv8.0n head
+head:
+  - [-1, 1, nn.Upsample, [None, 2, 'nearest']]
+  - [[-1, 4], 1, Concat, [1]]
+  - [-1, 3, C2f, [128]]  # 11
+  - [-1, 1, CA2f, [128]] 
+
+  - [[-1, 3], 1, Concat, [1]]  # cat backbone P3 
+  - [-1, 3, C2f, [128]]  # 12 (P3/8-small)
+
+  - [[-1, 12], 1, Concat, [1]]  # cat head P4
+  - [-1, 1, Conv, [256, 3, 2]] 
+  - [-1, 3, C2f, [256]]  # 15 (P4/16-medium)q
+
+
+  - [[-1, 8], 1, Concat, [1]]  # cat head P5
+  - [-1, 1, Conv, [448, 3, 2]]
+  - [-1, 3, C2f, [448]]  # 18 (P5/32-large)
+
+  - [[14, 17, 20], 1, Detect, [nc]]  # Detect(P3, P4, P5)
