@@ -1,0 +1,47 @@
+# Ultralytics YOLO 🚀, GPL-3.0 license# Ultralytics YOLO🚀,GPL-3 0许可协议。
+# YOLOv8 object detection model with P3-P5 outputs. For Usage examples see https://docs.ultralytics.com/tasks/detect# YOLOv8具有P3-P5输出的目标检测模型。有关使用示例，请参见https://docs.ultralytics.com/tasks/detect
+
+# Parameters   #参数
+nc   数控: 10  Nc: 10 #类数# number of classes   #类数
+depth_multiple: 0.67  Depth_multiple: 0.67 #缩放模块重复# scales module repeats   #缩放模块重复
+width_multiple: 0.75 # scales convolution channels
+ 
+# YOLOv8.0n backboneq   # YOLOv8.0n 骨干网
+backbone   骨干:
+  # [from, repeats, module, args]
+  - [-1- [-1, 1, Conv， [64,3,2]] # 0-P1/2, 1, Conv, [64, 3, 2]]  # 0-P1/2
+
+  - [-1- [-1， 3， C2f， [64， 真]], 3, C2f, [64, True]]
+
+  - [-1, 1, Conv, [128, 3, 2]]  
+  - [-1, 6, C2f, [128, True]]
+     #3
+
+  - [-1, 1, Conv, [256, 3, 2]]  
+  - [-1, 6, C2f, [256, True]]    #5
+
+
+  - [-1, 1, Conv, [384, 3, 2]]  
+  - [-1, 3, C2f, [384, True]]
+
+  - [-1, 1, SPPF, [384, 5]]  # 40*40
+
+# YOLOv8.0n head   # YOLOv8.0n头
+head   头:
+  - [-1, 1, nn.Upsample, [None, 2, 'nearest']]
+  - [[-1, 5], 1, Concat, [1]]
+  - [-1, 3, C2f, [256]]  # 80*80
+
+  - [-1, 1, nn.Upsample, [None, 2, 'nearest']]
+  - [[-1, 3], 1, Concat, [1]]  # cat backbone P3 
+  - [-1, 3, C2f, [128]]  # 14 (P3/8-small)
+
+  - [-1, 1, Conv, [128, 3, 2]]
+  - [[-1, 11], 1, Concat, [1]]  # cat head P4    #猫头P4
+  - [-1, 3, C2f, [256]]  # 17 (P4/16-medium)q
+
+  - [-1- [-1, 1, Conv， [256,3, 2]], 1, Conv, [256, 3, 2]]
+  - [[-1, 8], 1, Concat, [1]]  # cat head P5
+  - [-1, 3, C2f, [448]]  # 20 (P5/32-large)
+
+  - [[14, 17, 20], 1, Detect, [nc]]  # Detect(P3, P4, P5)
